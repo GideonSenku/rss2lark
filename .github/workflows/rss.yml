@@ -1,0 +1,22 @@
+name: update rss feed
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: "*/30 * * * *"
+
+jobs:
+  update-rss:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+      - run: yarn install
+      - run: npx cross-env DATA_BASE_USERNAME=${{ secrets.DATA_BASE_USERNAME}} DATA_BASE_PASSPORT=${{secrets.DATA_BASE_PASSPORT}} FEISHU_ROBOT_CALLBACK_URL=${{secrets.FEISHU_ROBOT_CALLBACK_URL}} esno ./src/index.ts

@@ -1,0 +1,6 @@
+.env
+node_modules
+.DS_Store
+**/*/.DS_Store
+docs/website.js
+./docs/website.css
