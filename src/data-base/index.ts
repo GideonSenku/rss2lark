@@ -1,40 +1,38 @@
-import { connect } from '@planetscale/database'
-import { isEmpty } from 'lodash';
-import 'dotenv/config'
+import { isEmpty } from "lodash";
+import { createClient, sql } from "@vercel/postgres";
+import "dotenv/config";
 
-const config = {
-  host: "aws.connect.psdb.cloud",
-  username: process.env.DATA_BASE_USERNAME,
-  password: process.env.DATA_BASE_PASSPORT,
-}
-let con: ReturnType<typeof connect> | null = null
-
-export const getDatabaseClient = () => {
-  if (con) return con;
-  con = connect(config)
-  return con
-}
-
-export const execSQL = async (sql: string) => {
-  const con = getDatabaseClient()
-  const result = await con.execute(sql)
-  return result.rows
-}
+const client = createClient();
 
 export const insertData = async (data: any[]) => {
-  if (isEmpty(data)) return
-  const res = data.reduce((acc, cur) => {
-    const { title, link, pubDate, content } = cur
+  try {
+    console.log("data", data);
+    if (isEmpty(data)) return;
 
-    const curItem = `('${title.replace(/["']/g, '')}', '${link}', '${pubDate}', '${content}', ' ', ' ')`
-    return [...acc, curItem]
-  }, [] as any[])
-  const insertSql = `insert into rss (title, link, pubDate, content, summary, isoDate) values` + res.join(',') + ';'
-  await execSQL(insertSql)
-}
+    await client.connect(); // 建立数据库连接
+
+    const values = data.map((cur) => {
+      const { title, link, pubDate, content } = cur;
+      return `('${title.replace(
+        /["']/g,
+        ""
+      )}', '${link}', '${pubDate}', '${content}', '', '')`;
+    });
+
+    const insertSql = `
+      INSERT INTO rss (title, link, pubDate, content, summary, isoDate)
+      VALUES ${values.join(", ")};
+    `;
+
+    await client.query(insertSql);
+  } catch (error) {
+    console.error("插入数据时出错:", error);
+  } finally {
+    await client.end(); // 关闭数据库连接
+  }
+};
 
 export const getRssData = async () => {
-  const sql = `select id, title, link, pubDate, content, summary, isoDate from rss`
-  const res = await execSQL(sql)
-  return res as any[]
-}
+  const { rows } = await sql`select * from rss ORDER BY id DESC LIMIT 30`;
+  return rows;
+};
