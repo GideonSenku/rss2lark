@@ -20,4 +20,15 @@ jobs:
           node-version: '18'
           cache: 'yarn'
       - run: yarn install
-      - run: npx cross-env DATA_BASE_USERNAME=${{ secrets.DATA_BASE_USERNAME}} DATA_BASE_PASSPORT=${{secrets.DATA_BASE_PASSPORT}} FEISHU_ROBOT_CALLBACK_URL=${{secrets.FEISHU_ROBOT_CALLBACK_URL}} esno ./src/index.ts
+      - name: Run update script
+        env:
+          POSTGRES_URL: ${{ secrets.POSTGRES_URL }}
+          POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
+          POSTGRES_URL_NO_SSL: ${{ secrets.POSTGRES_URL_NO_SSL }}
+          POSTGRES_URL_NON_POOLING: ${{ secrets.POSTGRES_URL_NON_POOLING }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DATABASE: ${{ secrets.POSTGRES_DATABASE }}
+          FEISHU_ROBOT_CALLBACK_URL: ${{ secrets.FEISHU_ROBOT_CALLBACK_URL }}
+        run: npx cross-env esno ./src/index.ts
