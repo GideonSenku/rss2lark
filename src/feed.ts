@@ -38,8 +38,14 @@ export const fetchRssData = async () => {
 
   const feedData = await Promise.all(
     rssData.map(async (feedItem) => {
-      const feed = await parser.parseURL(feedItem.url);
-      return feed.items;
+      try {
+        const feed = await parser.parseURL(feedItem.url);        
+        return feed.items;
+      } catch (error) {
+        //
+      } finally {
+        return []
+      }
     }),
   );
 
